@@ -1,0 +1,30 @@
+<div class=" modal fade" id="staticBackdropUser" data-bs-backdrop="static" data-bs-keyboard="false"
+  aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered border rounded-3 bg-light">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!-- <h5 class="modal-title">Modal title</h5> -->
+
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-1">
+        <div class="col-md-11 mx-auto col-lg-11">
+          <form class="p-2 p-md-5" action="/auth/signup" method="post">
+            <h1 class="h3 mb-3 fw-normal">Sign up</h1>
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="floatingInput1" placeholder="player 1" name="username">
+              <label for="floatingInput">Email address</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="floatingPassword1" placeholder="Password" name="password">
+              <label for="floatingPassword">Password</label>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-outline-success" data-bs-toggle="modal"
+              data-bs-target="#staticBackdropUser">Sign Up</button>
+            <hr class="my-4">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
