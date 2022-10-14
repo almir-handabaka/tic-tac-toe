@@ -4,10 +4,13 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
-
+let RedisStore = require("connect-redis")(session);
+// redis@v4
+const { createClient } = require("redis")
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
+var homeRouter = require('./routes/homepage');
 
 var app = express();
 
@@ -22,12 +25,20 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // session config
+const oneDay = 1000 * 60 * 60 * 24;
+//const store = new session.MemoryStore();
+
+let redisClient = createClient({ legacyMode: true })
+redisClient.connect().catch(console.error);
+const store = new RedisStore({ client: redisClient });
+
 app.use(session({
   secret: 'secretsecret123',
   resave: true,
   saveUninitialized: false,
-  cookie: { secure: true, maxAge: 1000 * 60 * 60 * 24 }
-}))
+  cookie: { maxAge: oneDay },
+  store: store
+}));
 
 /*
   AUTH KORISNIKA
@@ -36,14 +47,15 @@ app.use(session({
   3. ako ima validnu sesiju a zeli na login/register redirektamo ga na default homepage rutu
   4. u svakom drugom slucaju pustiti korisnika na narednu rutu
 */
+// almirr almir
 
 app.use(async function (req, res, next) {
-
   let isUserAuth = false;
 
   if (req.session.user) {
     isUserAuth = true;
   }
+
 
   // 1 i 2
   if (!isUserAuth) {
@@ -55,16 +67,16 @@ app.use(async function (req, res, next) {
 
   // 3
   if (req.originalUrl === '/auth/signup' || req.originalUrl === '/auth/login' || req.originalUrl === '/')
-    return res.redirect('/homepage');
+    return res.redirect('/home');
 
   // 4
   return next();
 });
 
 
-
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
+app.use('/home', homeRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

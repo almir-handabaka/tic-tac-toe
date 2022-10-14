@@ -32,17 +32,17 @@ check("password").not().isEmpty().isString().isLength({ min: 5 })], async functi
 
   if (!errors.isEmpty()) {
     console.log(errors.array());
-    return res.redirect('/');
+    return res.status(400).json({ "register": "bad request" });
   }
 
   try {
     const password_hash = await hashPassword(req.body.password);
     const user = { ...req.body, ["password_hash"]: password_hash };
     await user_db_functions.addNewUser(user);
-    return res.redirect('/');
+    return res.status(400).json({ "register": "success" });
   } catch (error) {
     console.log(error);
-    return res.redirect('/');
+    return res.status(400).json({ "register": "fail" });
   }
 
 });
@@ -60,21 +60,29 @@ check("password").not().isEmpty().isString().isLength({ min: 5 })], async functi
   const login_data = { ...req.body };
 
   try {
-    const db_user = await user_db_functions.getUser(login_data.username)[0];
-    if (db_user === undefined) {
-      return res.status(400).json({ "login": "fail" });
+    const db_user = await user_db_functions.getUser(login_data.username);
+    if (db_user === undefined || db_user[0] === undefined) {
+      return res.status(400).json({ "login": "fail 1" });
     }
 
-    req.session.user = db_user;
-    req.session.save();
-    return res.redirect('/');
+    bcrypt.compare(login_data.password, db_user[0].password_hash, function (err, result) {
+      if (result) {
+        console.log("Korisnik logovan!");
+        req.session.user = { ...db_user[0] };
+        req.session.save();
+        return res.redirect('/');
+      } else {
+        return res.status(400).json({ "login": "fail 2" });
+      }
+
+    });
 
   } catch (error) {
     console.log(error);
     res.redirect('/');
   }
 
-  res.send('respond with a resource login');
+
 });
 
 module.exports = router;

@@ -35,7 +35,7 @@ exports.user_db_functions = {
         if (err) {
           return reject(err);
         }
-        return resolve(result);
+        return resolve(result.rows);
       })
     });
   },
