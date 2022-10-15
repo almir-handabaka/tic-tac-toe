@@ -6,7 +6,9 @@ var logger = require('morgan');
 var session = require('express-session');
 let RedisStore = require("connect-redis")(session);
 // redis@v4
-const { createClient } = require("redis")
+const { createClient } = require('redis');
+
+
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
@@ -32,13 +34,31 @@ let redisClient = createClient({ legacyMode: true })
 redisClient.connect().catch(console.error);
 const store = new RedisStore({ client: redisClient });
 
-app.use(session({
+const sessionMiddleware = session({
   secret: 'secretsecret123',
   resave: true,
   saveUninitialized: false,
   cookie: { maxAge: oneDay },
   store: store
-}));
+});
+
+app.use(sessionMiddleware);
+
+// convert a connect middleware to a Socket.IO middleware
+const { game_socket } = require('./sockets');
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+game_socket.getIO().use(wrap(sessionMiddleware));
+
+game_socket.getIO().use((socket, next) => {
+  const session = socket.request.session;
+  if (session.user) {
+    console.log("session authorized")
+    next();
+  } else {
+    console.log("unauthorized");
+    next(new Error("unauthorized"));
+  }
+});
 
 /*
   AUTH KORISNIKA

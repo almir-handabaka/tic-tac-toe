@@ -31,10 +31,10 @@ server.on('listening', onListening);
 
 
 /**
- *  Socket.io
- */
+   Socket.io
+*/
 const { game_socket } = require('.././sockets');
-game_socket.io.attach(server);
+game_socket.getIO().attach(server);
 
 
 

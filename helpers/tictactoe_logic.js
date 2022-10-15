@@ -1,7 +1,10 @@
+const { v4: uuidv4 } = require('uuid');
+
 class TicTacToeBoard {
   board;
   current_player_turn;
   winner;
+  uuid;
 
   EMPTY_BOX = 0;
   PLAYER_1 = 10;
@@ -17,6 +20,7 @@ class TicTacToeBoard {
     ];
     this.current_player_turn = this.PLAYER_1;
     this.winner = 0;
+    this.uuid = uuidv4();
   }
 
   gameFinished() {
@@ -27,15 +31,21 @@ class TicTacToeBoard {
       let score_col = 0;
       for (let j = 0; j < this.COLUMNS; j++) {
         if (this.board[i][j] === this.PLAYER_1) {
-          score++;
+          score_row++;
         } else if (this.board[i][j] === this.PLAYER_2) {
-          score--;
+          score_row--;
+        }
+
+        if (this.board[j][i] === this.PLAYER_1) {
+          score_col++;
+        } else if (this.board[j][i] === this.PLAYER_2) {
+          score_col--;
         }
       }
-      if (score_row === ROWS || score_col === COLUMNS) {
+      if (score_row === this.ROWS || score_col === this.COLUMNS) {
         this.winner = this.PLAYER_1;
       }
-      else if (score_row === -ROWS || score_col === -COLUMNS) {
+      else if (score_row === -this.ROWS || score_col === -this.COLUMNS) {
         this.winner = this.PLAYER_2;
       }
     }
@@ -61,7 +71,7 @@ class TicTacToeBoard {
   }
 
   isMoveLegal(move) {
-    if (move.row < 0 || move.row > (rows - 1) || move.column < 0 || move.column > (COLUMNS - 1)) {
+    if (move.row < 0 || move.row > (this.ROWS - 1) || move.column < 0 || move.column > (this.COLUMNS - 1)) {
       return false;
     }
     else if (this.board[move.row][move.column] !== this.EMPTY_BOX) {
@@ -80,10 +90,10 @@ class TicTacToeBoard {
 
   makeMove(move) {
     if (this.isMoveLegal(move)) {
-      this.board[move.row][move.column] = this.current_player_turn;
-      if (gameFinished())
-        return true;
+      if (this.gameFinished())
+        return false;
 
+      this.board[move.row][move.column] = this.current_player_turn;
       this.changeTurn();
       return true;
     }
@@ -91,7 +101,7 @@ class TicTacToeBoard {
   }
 
   getBoardInfo() {
-    return { board: this.board, current_player_turn: this.current_player_turn };
+    return { board: this.board, current_player_turn: this.current_player_turn, uuid: this.uuid, finished: this.gameFinished() };
   }
 
 

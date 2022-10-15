@@ -138,4 +138,5 @@ body {
 
 .box:hover {
   background: rgb(130, 129, 129);
+  cursor: pointer;
 }
