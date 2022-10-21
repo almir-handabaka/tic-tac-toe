@@ -8,8 +8,8 @@ class TicTacToeBoard {
 
   game_mode;
 
-  p1_name;
-  p2_name;
+  p1_socket_id;
+  p2_socket_id;
 
   EMPTY_BOX = 0;
   PLAYER_1 = 10;
@@ -17,7 +17,7 @@ class TicTacToeBoard {
   ROWS = 3;
   COLUMNS = 3;
 
-  constructor(game_mode, p1_name, p2_name) {
+  constructor(game_mode, p1_socket_id, p2_socket_id) {
     this.board = [
       [this.EMPTY_BOX, this.EMPTY_BOX, this.EMPTY_BOX],
       [this.EMPTY_BOX, this.EMPTY_BOX, this.EMPTY_BOX],
@@ -28,8 +28,8 @@ class TicTacToeBoard {
     this.uuid = uuidv4();
     this.game_mode = game_mode;
 
-    this.p1_name = p1_name;
-    this.p2_name = p2_name;
+    this.p1_socket_id = p1_socket_id;
+    this.p2_socket_id = p2_socket_id;
   }
 
   gameFinished() {
@@ -68,8 +68,9 @@ class TicTacToeBoard {
       } else if (this.board[i][i] === this.PLAYER_2) {
         d1--;
       }
-
-      if (this.board[this.ROWS - i - 1][this.ROWS - i - 1] === this.PLAYER_1) {
+      console.log("---", this.ROWS - i - 1);
+      console.log(this.ROWS - i - 1, this.ROWS - i - 1);
+      if (this.board[i][this.ROWS - i - 1] === this.PLAYER_1) {
         d2++;
       } else if (this.board[this.ROWS - i - 1][this.ROWS - i - 1] === this.PLAYER_2) {
         d2--;
@@ -111,14 +112,17 @@ class TicTacToeBoard {
     if (this.isMoveLegal(move)) {
       this.board[move.row][move.column] = this.current_player_turn;
       this.gameFinished();
-      this.changeTurn();
+      if (this.winner === 0) {
+        this.changeTurn();
+      }
+
       return true;
     }
     return false;
   }
 
   getBoardInfo() {
-    return { board: this.board, current_player_turn: this.current_player_turn, uuid: this.uuid, winner: this.winner, game_mode: this.game_mode, p1_name: this.p1_name, p2_name: this.p2_name };
+    return { board: this.board, current_player_turn: this.current_player_turn, uuid: this.uuid, winner: this.winner, game_mode: this.game_mode, p1_socket_id: this.p1_socket_id, p2_socket_id: this.p2_socket_id };
   }
 
 }
