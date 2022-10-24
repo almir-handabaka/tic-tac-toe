@@ -17,9 +17,7 @@ toastr.options = {
   "hideMethod": "fadeOut"
 }
 
-
 let board;
-
 
 const onBoxClick = (x, y) => {
   if (board.game_mode === 'sp') {
@@ -46,7 +44,7 @@ const getPlayerSign = (player_number) => {
 }
 
 const startSinglePlayer = () => {
-  // socket.emit('singleplayer');
+  socket.emit('singleplayer');
 }
 
 const startMultiPlayerGame = () => {
@@ -100,9 +98,6 @@ const setScorebox = () => {
   }
 }
 
-
-// toastr["success"]("<div><input class="input - small" value="textbox"/>&nbsp;<a href="http://johnpapa.net" target="_blank">This is a hyperlink</a></div><div><button type="button" id="okBtn" class="btn btn-primary">Close me</button><button type="button" id="surpriseBtn" class="btn" style="margin: 0 8px 0 8px">Surprise me</button></div>")
-
 socket.on('player_not_online', function () {
   console.log("player not online");
   toastr["error"]("Player is not online!")
@@ -116,8 +111,12 @@ socket.on('friend_invite', function (friend) {
     </div> `, `${friend.friend_username} invited you to a game!`)
 });
 
+socket.on('accepted_invite', function (friend) {
+  console.log("player accepted");
+  toastr["success"](`${friend.friend_username} accepted your invite.`)
+
+});
+
 const acceptFriendInvite = (friend) => {
-  console.log("acceptFriendInvite");
-  console.log(friend);
   socket.emit('accept_friend_invite', { friend });
 }
