@@ -1,5 +1,23 @@
 const socket = io({});
 
+toastr.options = {
+  "closeButton": true,
+  "debug": false,
+  "newestOnTop": true,
+  "progressBar": true,
+  "positionClass": "toast-top-right",
+  "preventDuplicates": true,
+  "showDuration": "1000",
+  "hideDuration": "3000",
+  "timeOut": "10000",
+  "extendedTimeOut": "3000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+}
+
+
 let board;
 
 
@@ -7,11 +25,9 @@ const onBoxClick = (x, y) => {
   if (board.game_mode === 'sp') {
     socket.emit('box_click', { row: x, column: y, uuid: board.uuid });
   }
-
   else if (getPlayerTurn()) {
     socket.emit('box_click', { row: x, column: y, uuid: board.uuid });
   }
-
 }
 
 const getPlayerTurn = () => {
@@ -30,11 +46,17 @@ const getPlayerSign = (player_number) => {
 }
 
 const startSinglePlayer = () => {
-  socket.emit('singleplayer');
+  // socket.emit('singleplayer');
 }
 
 const startMultiPlayerGame = () => {
   socket.emit('multiplayer');
+}
+
+const playAgainstAFriend = () => {
+  const friend_username = $('#friend_username').val();
+  console.log(friend_username);
+  socket.emit('play_against_friend', { friend_username });
 }
 
 socket.on('set_board', function (new_board) {
@@ -76,10 +98,26 @@ const setScorebox = () => {
     $('.scorebox').empty().append("O");
     $(".scorebox").css("border-color", "green");
   }
-
-
-
 }
 
 
+// toastr["success"]("<div><input class="input - small" value="textbox"/>&nbsp;<a href="http://johnpapa.net" target="_blank">This is a hyperlink</a></div><div><button type="button" id="okBtn" class="btn btn-primary">Close me</button><button type="button" id="surpriseBtn" class="btn" style="margin: 0 8px 0 8px">Surprise me</button></div>")
 
+socket.on('player_not_online', function () {
+  console.log("player not online");
+  toastr["error"]("Player is not online!")
+});
+
+socket.on('friend_invite', function (friend) {
+  console.log(friend);
+  toastr["success"](`</br>
+    <div>
+    <button type="button" id="surpriseBtn" class="btn" style="margin: 0 8px 0 8px" onclick="acceptFriendInvite('${friend.friend_username}')" >Accept invite</button>
+    </div> `, `${friend.friend_username} invited you to a game!`)
+});
+
+const acceptFriendInvite = (friend) => {
+  console.log("acceptFriendInvite");
+  console.log(friend);
+  socket.emit('accept_friend_invite', { friend });
+}

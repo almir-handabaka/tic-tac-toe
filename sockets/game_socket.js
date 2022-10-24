@@ -7,9 +7,11 @@ let waiting_list = [];
 
 
 io.on('connection', (socket) => {
-  console.log("User connected on chat socket", socket.id);
-
+  console.log("User connected on game socket", socket.id);
   const req = socket.request;
+
+  socket.user_data = req.session.user;
+  // console.log(io.sockets.sockets);
 
   socket.use((__, next) => {
     req.session.reload((err) => {
@@ -33,8 +35,6 @@ io.on('connection', (socket) => {
   });
 
 
-
-
   socket.on('multiplayer', async () => {
     console.log("User clicked on mp", socket.id);
 
@@ -56,6 +56,53 @@ io.on('connection', (socket) => {
     socket.join(new_board.uuid);
     io.to(new_board.uuid).emit('set_board', new_board.getBoardInfo());
     console.log("user joined mp", req.session.user.username)
+  });
+
+
+  socket.on('play_against_friend', async (friend) => {
+    friend_username = friend.friend_username;
+    const all_sockets = await io.fetchSockets();
+
+    //for (const socket of all_sockets) {
+    //   console.log(socket.id);
+    //   console.log(socket.handshake);
+    //   console.log(socket.rooms);
+    //   console.log(socket.data);
+    //console.log(socket.user_data);
+    //console.log("next socket iteration");
+    //}
+    console.log("---------------------------");
+    const filtered_users = all_sockets.filter(soc => soc.user_data.username === friend_username);
+
+    if (filtered_users.length === 0) {
+      return socket.emit('player_not_online');
+    }
+
+    const target_users_id = filtered_users[0].id;
+    socket.friend_game = friend_username;
+    io.to(target_users_id).emit('friend_invite', { friend_username: req.session.user.username });
+
+
+
+    console.log("User clicked on play against a friend", friend);
+  });
+
+
+  socket.on('accept_friend_invite', async (friend) => {
+    console.log(friend);
+    const all_sockets = await io.fetchSockets();
+
+    const filtered_users = all_sockets.filter(soc => soc.user_data.username === friend.friend);
+
+    if (filtered_users.length === 0) {
+      return socket.emit('player_not_online');
+    }
+
+    const friend_game = filtered_users[0].friend_game;
+    if (friend_game === req.session.user.username) {
+      console.log("game accepted");
+    }
+
   });
 
   socket.on('box_click', async (move) => {

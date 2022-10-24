@@ -117,7 +117,11 @@ main {
 
 
 body {
-  background-image: linear-gradient(to right, #a5dad7 0%, #736ac5 100%);
+  /* background-image: linear-gradient(to right, #a5dad7 0%, #736ac5 100%); */
+
+  /* background-image: linear-gradient(to right, #8050b0 0%, #736ac5 100%); */
+  background-color: #619EA1 !important;
+
 }
 
 .game-board {
@@ -128,12 +132,13 @@ body {
 
 .box {
   background: #444;
-  border: 1px solid #555;
+  background-color: #252C30 !important;
+  border: 1px solid #619EA1;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #AAA;
-  font-size: 45px;
+  color: #ffffff;
+  font-size: 55px;
 }
 
 .box:hover {
@@ -142,10 +147,10 @@ body {
 }
 
 .scorebox {
-  width: 300px;
+  width: 450px !important;
   font-size: 20px;
-  border: rgb(81, 81, 81) 1px solid;
+  border: #252C30 1px solid;
   border-radius: 7px;
   background-color: aliceblue;
-  margin-right: 5px;
+
 }
