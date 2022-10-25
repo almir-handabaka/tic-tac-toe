@@ -40,4 +40,29 @@ exports.user_db_functions = {
     });
   },
 
+
+  saveGameResults: (p1, p2, winner) => {
+    return new Promise((resolve, reject) => {
+      pool.query('INSERT INTO game_history (player1, player2, "result") VALUES($1,$2,$3)', [p1, p2, winner], (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve();
+      })
+    });
+  },
+
+
+  getGameHistory: (player_id) => {
+    return new Promise((resolve, reject) => {
+      pool.query('select * from game_history gh inner join users u on (gh.player1 = u.user_id or gh.player2 = u.user_id) where u.user_id != $1', [player_id], (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result.rows);
+      })
+    });
+  },
+
+
 }

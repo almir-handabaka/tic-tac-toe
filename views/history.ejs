@@ -43,43 +43,12 @@
       </a>
       <hr>
       <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item" onclick="startSinglePlayer()">
-          <a href="#" class="nav-link text-white" aria-current="page">
-            <svg class="bi pe-none me-2" width="16" height="16">
-              <use xlink:href="#home" />
-            </svg>
-            Singleplayer
-          </a>
-        </li>
-        <li onclick="startMultiPlayerGame()">
-          <a href="#" class="nav-link text-white">
-            <svg class="bi pe-none me-2" width="16" height="16">
-              <use xlink:href="#speedometer2" />
-            </svg>
-            Multiplayer
-          </a>
-        </li>
         <li>
-          <a href="#" class="nav-link text-white" data-bs-toggle="dropdown" aria-expanded="false">
-            <svg class="bi pe-none me-2" width="16" height="16">
-              <use xlink:href="#table" />
-            </svg>
-            Play against a friend
-
-          </a>
-          <ul class="dropdown-menu">
-            <li><input type="text" id="friend_username" class="form-control" placeholder="Friends username"
-                aria-label="Username" aria-describedby="basic-addon1"></li>
-            <li onclick="playAgainstAFriend()"><a class="dropdown-item" href="#">Send invite</a></li>
-          </ul>
-
-        </li>
-        <li>
-          <a href="/home/history" class="nav-link text-white">
+          <a href="/home" class="nav-link text-white">
             <svg class="bi pe-none me-2" width="16" height="16">
               <use xlink:href="#grid" />
             </svg>
-            History
+            Back to main page
           </a>
         </li>
       </ul>
@@ -102,32 +71,51 @@
     <div class="b-example-divider"></div>
 
     <div class="container text-center col-lg-6" style="margin-top: auto; margin-bottom: auto;">
-      <div class="row g-1" style="margin-bottom: 20px;">
-        <div class="scorebox">
-          X
-        </div>
-      </div>
-      <div class="row g-1" style="margin-bottom: 10px;">
-        <div class="scorebox">
-          X
-        </div>
-      </div>
 
-      <div class="game-board">
-        <div onclick="onBoxClick(0,0, this)" class="box"></div>
-        <div onclick="onBoxClick(0,1, this)" class="box"></div>
-        <div onclick="onBoxClick(0,2, this)" class="box"></div>
+      <table class="table table-dark" style="opacity: 0.95;">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Against</th>
+            <th scope="col">Date</th>
+            <th scope="col">Won?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(var i=0; i<history.length; i++) {%>
 
-        <div onclick="onBoxClick(1,0, this)" class="box"></div>
-        <div onclick="onBoxClick(1,1, this)" class="box"></div>
-        <div onclick="onBoxClick(1,2, this)" class="box"></div>
+            <% if (history[i].result==="p1" && history[i].player1===user_id) { %>
+              <tr class="table-success">
+                <% } else if (history[i].result==="p2" && history[i].player2===user_id) { %>
+              <tr class="table-success">
+                <% } else { %>
+              <tr class="table-danger">
+                <% } %>
+                  <th>
+                    <%= i + 1 %>
+                  </th>
+                  <td>
+                    <%= history[i].username %>
+                  </td>
+                  <td>
+                    <%= history[i].game_dt.toLocaleString(); %>
+                  </td>
+                  <td>
+                    <% if (history[i].result==="p1" && history[i].player1===user_id) { %>
+                      YES
+                      <% } else if (history[i].result==="p2" && history[i].player2===user_id) { %>
+                        YES
+                        <% } else { %>
+                          NO
+                          <% } %>
+                  </td>
+              </tr>
+              <% } %>
 
-        <div onclick="onBoxClick(2,0, this)" class="box"></div>
-        <div onclick="onBoxClick(2,1, this)" class="box"></div>
-        <div onclick="onBoxClick(2,2, this)" class="box"></div>
 
+        </tbody>
+      </table>
 
-      </div>
     </div>
     <div class="b-example-divider mb-0"></div>
   </main>
