@@ -79,14 +79,14 @@ app.use(async function (req, res, next) {
 
   // 1 i 2
   if (!isUserAuth) {
-    if (req.originalUrl === '/auth/signup' || req.originalUrl === '/auth/login' || req.originalUrl === '/') {
+    if (req.originalUrl === '/auth/signup' || req.originalUrl === '/auth/login' || req.originalUrl === '/' || req.originalUrl === '/auth/guest_login') {
       return next();
     }
     return res.redirect('/');
   }
 
   // 3
-  if (req.originalUrl === '/auth/signup' || req.originalUrl === '/auth/login' || req.originalUrl === '/')
+  if (req.originalUrl === '/auth/signup' || req.originalUrl === '/auth/login' || req.originalUrl === '/' || req.originalUrl === '/auth/guest_login')
     return res.redirect('/home');
 
   // 4

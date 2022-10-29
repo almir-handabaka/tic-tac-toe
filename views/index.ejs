@@ -43,7 +43,9 @@
             <hr class="my-4">
             <button type="button" class="w-100 btn btn-lg btn-outline-success" data-bs-toggle="modal"
               data-bs-target="#staticBackdropUser">Sign Up</button>
-            <button type="button" class="w-100 btn btn-lg btn-outline-success my-2">Continue as a quest</button>
+            <button type="button" class="w-100 btn btn-lg btn-outline-success my-2"
+              onclick="window.location.href = '/auth/guest_login'">Continue
+              as a quest</button>
           </form>
         </div>
       </div>
@@ -53,6 +55,11 @@
 
   <!-- Modal for user registration -->
   <%- include('./partial_views/register_modal.ejs') %>
+
+
+    <script>
+
+    </script>
 
 </body>
 

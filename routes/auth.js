@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
+const { uniqueNamesGenerator, NumberDictionary, names } = require('unique-names-generator');
 
 const { user_db_functions } = require('.././database/database_functions.js');
 
@@ -68,6 +69,7 @@ check("password").not().isEmpty().isString().isLength({ min: 5 })], async functi
     bcrypt.compare(login_data.password, db_user[0].password_hash, function (err, result) {
       if (result) {
         console.log("Korisnik logovan!");
+        delete db_user[0].password_hash;
         req.session.user = { ...db_user[0] };
         req.session.save();
         return res.redirect('/');
@@ -85,6 +87,23 @@ check("password").not().isEmpty().isString().isLength({ min: 5 })], async functi
 
 });
 
+
+// change
+router.get('/guest_login', async function (req, res, next) {
+
+  const numberDictionary = NumberDictionary.generate({ min: 100, max: 999999 });
+  const dict_list = [names, numberDictionary];
+  const shortName = uniqueNamesGenerator({
+    dictionaries: dict_list,
+    length: 2,
+    style: 'capital',
+    separator: ''
+  });
+
+  req.session.user = { user_id: 10, username: shortName };
+  req.session.save();
+  return res.redirect('/');
+});
 
 router.get('/logout', function (req, res, next) {
   req.session.user = null;

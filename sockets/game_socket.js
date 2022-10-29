@@ -2,6 +2,8 @@ const io = require("socket.io")();
 const { v4: uuidv4 } = require('uuid');
 const TicTacToeBoard = require(".././helpers/tictactoe_logic.js");
 const { client } = require("../helpers/redis-client.js");
+const { user_db_functions } = require('../database/database_functions.js');
+
 
 let waiting_list = [];
 
@@ -10,6 +12,7 @@ io.on('connection', (socket) => {
   const req = socket.request;
 
   socket.user_data = req.session.user;
+  console.log(socket.user_data);
 
   socket.use((__, next) => {
     req.session.reload((err) => {
@@ -19,6 +22,20 @@ io.on('connection', (socket) => {
         next();
       }
     });
+  });
+
+
+  socket.on("disconnect", (reason) => {
+    // kicking user out of waiting list
+    waiting_list = waiting_list.filter(sc_id => sc_id !== socket.id);
+  });
+
+  socket.on("disconnecting", (reason) => {
+    for (const room of socket.rooms) {
+      if (room !== socket.id) {
+        socket.to(room).emit("user has left", `${socket.user_data.username} has left the game !`);
+      }
+    }
   });
 
   socket.on('singleplayer', async () => {
@@ -34,24 +51,30 @@ io.on('connection', (socket) => {
 
 
   socket.on('multiplayer', async () => {
-    console.log("User clicked on mp", socket.id);
+    console.log("User clicked on multiplayer", socket.id);
+    waiting_list.push(socket.id);
 
-    if (waiting_list.length === 0) {
-      const uuid = uuidv4();
-      waiting_list.push({ uuid: uuid, socket_id: socket.id })
-      return socket.join(uuid);
+    if (waiting_list.length < 2) {
+      return;
     }
 
+
     first_player = waiting_list[0];
+    second_player = waiting_list[1];
+    waiting_list.shift();
     waiting_list.shift();
 
-    const new_board = new TicTacToeBoard("mp", first_player.socket_id, socket.id);
-    new_board.uuid = first_player.uuid;
+    const new_board = new TicTacToeBoard("mp", first_player, second_player);
 
     await client.set(new_board.uuid, JSON.stringify(new_board.getBoardInfo()));
-    socket.join(new_board.uuid);
+
+    io.to(first_player).emit('set_user_sign', 'X');
+    io.to(second_player).emit('set_user_sign', 'O');
+
+    io.in(first_player).socketsJoin(new_board.uuid);
+    io.in(second_player).socketsJoin(new_board.uuid);
+
     io.to(new_board.uuid).emit('set_board', new_board.getBoardInfo());
-    console.log("user joined mp", req.session.user.username)
   });
 
 
@@ -94,8 +117,6 @@ io.on('connection', (socket) => {
     const friend_game = filtered_users[0].friend_game;
     const target_users_id = filtered_users[0].id;
     if (friend_game === req.session.user.username) {
-      // dodajemo ih u istu socket sobu
-      // sve funkcije oko dodavanja u sobu staviti u jednu klasu
       const new_board = new TicTacToeBoard("mp", target_users_id, socket.id);
 
       await client.set(new_board.uuid, JSON.stringify(new_board.getBoardInfo()));
@@ -118,17 +139,35 @@ io.on('connection', (socket) => {
     game_board.current_player_turn = game.current_player_turn;
     game_board.uuid = game.uuid;
     game_board.winner = game.winner;
+    game_board.board_sums = game.board_sums;
+    game_board.move_count = game.move_count;
 
-    if (game_board.winner !== 0) {
+    if (game_board.isGameFinished()) {
       return io.to(game.uuid).emit('set_winner', game_board.getBoardInfo());
     }
 
     game_board.makeMove(move);
-    console.log(game_board.winner);
+
     await client.set(game_board.uuid, JSON.stringify(game_board.getBoardInfo()));
 
     io.to(game.uuid).emit('set_board', game_board.getBoardInfo());
-    if (game_board.winner !== 0) {
+
+    if (game_board.isGameFinished()) {
+      if (game_board.game_mode === "mp") {
+        const p1_socket = io.sockets.sockets.get(game_board.p1_socket_id);
+        const p2_socket = io.sockets.sockets.get(game_board.p2_socket_id);
+        let winner_str;
+
+        if (game_board.winner === game_board.PLAYER_1) {
+          winner_str = "p1";
+        } else if (game_board.winner === game_board.PLAYER_2) {
+          winner_str = "p2";
+        } else {
+          winner_str = "draw";
+        }
+
+        await user_db_functions.saveGameResults(p1_socket.user_data.user_id, p2_socket.user_data.user_id, winner_str);
+      }
       return io.to(game.uuid).emit('set_winner', game_board.getBoardInfo());
     }
   });
@@ -138,10 +177,6 @@ io.on('connection', (socket) => {
 const getIO = () => {
   return io;
 }
-
-
-
-
 
 
 module.exports = { getIO };

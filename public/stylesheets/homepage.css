@@ -152,5 +152,13 @@ body {
   border: #252C30 1px solid;
   border-radius: 7px;
   background-color: aliceblue;
+}
 
+
+.player-sign {
+  width: 450px !important;
+  font-size: 20px;
+  border: #252C30 1px solid;
+  border-radius: 7px;
+  background-color: aliceblue;
 }

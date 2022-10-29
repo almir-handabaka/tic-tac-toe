@@ -2,9 +2,12 @@ const { v4: uuidv4 } = require('uuid');
 
 class TicTacToeBoard {
   board;
+  board_sums;
   current_player_turn;
   winner;
   uuid;
+  move_count;
+
 
   game_mode;
 
@@ -14,76 +17,30 @@ class TicTacToeBoard {
   EMPTY_BOX = 0;
   PLAYER_1 = 10;
   PLAYER_2 = 20;
-  ROWS = 3;
-  COLUMNS = 3;
+  NO_WINNER = 30;
+  SIZE = 3; // matrix size * size
 
   constructor(game_mode, p1_socket_id, p2_socket_id) {
-    this.board = [
-      [this.EMPTY_BOX, this.EMPTY_BOX, this.EMPTY_BOX],
-      [this.EMPTY_BOX, this.EMPTY_BOX, this.EMPTY_BOX],
-      [this.EMPTY_BOX, this.EMPTY_BOX, this.EMPTY_BOX]
-    ];
+    this.board = [];
+    for (let i = 0; i < this.SIZE; i++) {
+      const arr = Array(this.SIZE).fill(this.EMPTY_BOX);
+      this.board.push(arr);
+    }
+
+    this.board_sums = Array((this.SIZE * 2) + 2).fill(0);
+
     this.current_player_turn = this.PLAYER_1;
     this.winner = 0;
     this.uuid = uuidv4();
     this.game_mode = game_mode;
 
+    this.move_count = 0;
+
     this.p1_socket_id = p1_socket_id;
     this.p2_socket_id = p2_socket_id;
   }
 
-  gameFinished() {
-
-    // rows
-    for (let i = 0; i < this.ROWS; i++) {
-      let score_row = 0;
-      let score_col = 0;
-      for (let j = 0; j < this.COLUMNS; j++) {
-        if (this.board[i][j] === this.PLAYER_1) {
-          score_row++;
-        } else if (this.board[i][j] === this.PLAYER_2) {
-          score_row--;
-        }
-
-        if (this.board[j][i] === this.PLAYER_1) {
-          score_col++;
-        } else if (this.board[j][i] === this.PLAYER_2) {
-          score_col--;
-        }
-      }
-      if (score_row === this.ROWS || score_col === this.COLUMNS) {
-        this.winner = this.PLAYER_1;
-      }
-      else if (score_row === -this.ROWS || score_col === -this.COLUMNS) {
-        this.winner = this.PLAYER_2;
-      }
-    }
-
-    // diagonals
-    let d1 = 0;
-    let d2 = 0;
-    for (let i = 0; i < this.ROWS; i++) {
-      if (this.board[i][i] === this.PLAYER_1) {
-        d1++;
-      } else if (this.board[i][i] === this.PLAYER_2) {
-        d1--;
-      }
-      console.log("---", this.ROWS - i - 1);
-      console.log(this.ROWS - i - 1, this.ROWS - i - 1);
-      if (this.board[i][this.ROWS - i - 1] === this.PLAYER_1) {
-        d2++;
-      } else if (this.board[this.ROWS - i - 1][this.ROWS - i - 1] === this.PLAYER_2) {
-        d2--;
-      }
-
-      if (d1 === this.ROWS || d2 === this.COLUMNS) {
-        this.winner = this.PLAYER_1;
-      }
-      else if (d1 === -this.ROWS || d2 === -this.COLUMNS) {
-        this.winner = this.PLAYER_2;
-      }
-    }
-
+  isGameFinished() {
     return (this.winner !== 0);
   }
 
@@ -106,23 +63,64 @@ class TicTacToeBoard {
   }
 
   makeMove(move) {
-    if (this.winner !== 0) {
+    if (this.isGameFinished())
       return false;
-    }
-    if (this.isMoveLegal(move)) {
-      this.board[move.row][move.column] = this.current_player_turn;
-      this.gameFinished();
-      if (this.winner === 0) {
-        this.changeTurn();
-      }
 
-      return true;
+    if (!this.isMoveLegal(move))
+      return false;
+
+    this.board[move.row][move.column] = this.current_player_turn;
+
+    if (this.current_player_turn === this.PLAYER_1) {
+      // update row sum
+      this.board_sums[move.row]++;
+      // update col sum
+      this.board_sums[this.SIZE + move.column]++;
+      // diag 1
+      if (move.row - move.column === 0) {
+        this.board_sums[this.SIZE * 2]++;
+      }
+      // diag 2
+      if (move.row + move.column === this.SIZE - 1) {
+        this.board_sums[(this.SIZE * 2) + 1]++;
+      }
     }
-    return false;
+    else {
+      // update row sum
+      this.board_sums[move.row]--;
+      // update col sum
+      this.board_sums[this.SIZE + move.column]--;
+      // diag 1
+      if (move.row - move.column === 0) {
+        this.board_sums[this.SIZE * 2]--;
+      }
+      // diag 2
+      if (move.row + move.column === this.SIZE - 1) {
+        this.board_sums[(this.SIZE * 2) + 1]--;
+      }
+    }
+
+    if (this.board_sums[move.row] === this.SIZE || this.board_sums[this.SIZE + move.column] === this.SIZE || this.board_sums[this.SIZE * 2] === this.SIZE || this.board_sums[(this.SIZE * 2) + 1] === this.SIZE) {
+      this.winner = this.PLAYER_1;
+    }
+    else if (this.board_sums[move.row] === -this.SIZE || this.board_sums[this.SIZE + move.column] === -this.SIZE || this.board_sums[this.SIZE * 2] === -this.SIZE || this.board_sums[(this.SIZE * 2) + 1] === -this.SIZE) {
+      this.winner = this.PLAYER_2;
+    }
+
+    this.move_count++;
+
+    if (!this.isGameFinished())
+      this.changeTurn();
+
+    if (!this.isGameFinished() && this.winner === 0 && this.move_count === (this.SIZE * this.SIZE)) {
+      this.winner = this.NO_WINNER;
+    }
+
+    return true;
   }
 
   getBoardInfo() {
-    return { board: this.board, current_player_turn: this.current_player_turn, uuid: this.uuid, winner: this.winner, game_mode: this.game_mode, p1_socket_id: this.p1_socket_id, p2_socket_id: this.p2_socket_id };
+    return { board: this.board, current_player_turn: this.current_player_turn, uuid: this.uuid, winner: this.winner, game_mode: this.game_mode, p1_socket_id: this.p1_socket_id, p2_socket_id: this.p2_socket_id, board_sums: this.board_sums, move_count: this.move_count };
   }
 
 }

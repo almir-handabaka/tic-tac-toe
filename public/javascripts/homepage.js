@@ -76,12 +76,15 @@ socket.on('set_board', function (new_board) {
 
 
 socket.on('set_winner', function (new_board) {
-  if (board.current_player_turn === 10) {
+  if (board.winner === 10) {
     $('.scorebox').empty().append("X is the winner");
   }
 
-  else if (board.current_player_turn === 20) {
+  else if (board.winner === 20) {
     $('.scorebox').empty().append("O is the winner");
+  }
+  else if (board.winner === 30) {
+    $('.scorebox').empty().append("Game is tied!");
   }
 });
 
@@ -114,7 +117,16 @@ socket.on('friend_invite', function (friend) {
 socket.on('accepted_invite', function (friend) {
   console.log("player accepted");
   toastr["success"](`${friend.friend_username} accepted your invite.`)
+});
 
+socket.on('set_user_sign', function (sign) {
+  console.log("setting user sign");
+  $('.player-sign').empty().append(`You are ${sign}`);
+});
+
+socket.on('user has left', function (message) {
+  console.log("setting user sign");
+  $('.player-sign').empty().append(message);
 });
 
 const acceptFriendInvite = (friend) => {
